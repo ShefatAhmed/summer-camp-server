@@ -31,16 +31,33 @@ async function run() {
 
 
     // classes
-    app.get('/allClasses', async (req, res) => {
+    app.get('/classes', async (req, res) => {
       const result = await classesCollection.find().toArray();
       res.send(result);
     })
+    app.get('/popularClasses', async (req, res) => {
+      const query = {};
+      const options = {
+        sort: { "number_of_student": -1 }
+      };
+      const cursor = classesCollection.find(query, options);
+      const result = await cursor.toArray();
+      res.send(result);
+    });
     // instructor
     app.get('/instructor', async (req, res) => {
       const result = await instructorCollection.find().toArray()
       res.send(result);
     })
-
+    app.get('/popularInstractor', async (req, res) => {
+      const query = {};
+      const options = {
+        sort: { "number_of_students": -1 }
+      };
+      const cursor = instructorCollection.find(query, options);
+      const result = await cursor.toArray();
+      res.send(result);
+    });
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
