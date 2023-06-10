@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const app = express();
-require('dotenv').config()
+require('dotenv').config();
 const port = process.env.PORT || 5000;
 
 // middleware
@@ -10,7 +10,7 @@ app.use(express.json());
 
 
 
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.xak6ecy.mongodb.net/?retryWrites=true&w=majority`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -46,6 +46,19 @@ async function run() {
       res.send(result);
     });
     // selected class
+    app.get("/selectedClass/:email", async (req, res) => {
+      const result = await selectedClassCollection.find({
+        email: req.params.email,
+      })
+        .toArray();
+      res.send(result)
+    })
+    app.delete("/selectedClass/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) }
+      const result = await selectedClassCollection.deleteOne(query);
+      res.send(result);
+    })
     app.post('/selectedClass', async (req, res) => {
       const classes = req.body;
       const result = await selectedClassCollection.insertOne(classes);
