@@ -139,6 +139,11 @@ async function run() {
       const result = await classesCollection.find().toArray();
       res.send(result);
     })
+    app.post('/classes', async (req, res) => {
+      const newclasses = req.body;
+      const result = await classesCollection.insertOne(newclasses);
+      res.send(result);
+    })
     app.get('/popularClasses', async (req, res) => {
       const query = {};
       const options = {
