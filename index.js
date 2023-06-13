@@ -3,6 +3,7 @@ const cors = require('cors');
 const app = express();
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
+const stripe = require('stripe')(process.env.PAYMENT_SECRET_KEY);
 const port = process.env.PORT || 5000;
 
 // middleware
@@ -222,6 +223,25 @@ async function run() {
       const result = await selectedClassCollection.insertOne(classes);
       res.send(result);
     })
+    // payment
+    app.post('/create-payment-intent', async (req, res) => {
+      try {
+        const { Price } = req.body;
+        const amount = parseInt(Price * 100);
+        const paymentIntent = await stripe.paymentIntents.create({
+          amount: amount,
+          currency: 'usd',
+          payment_method_types: ['card']
+        });
+    
+        res.send({
+          clientSecret: paymentIntent.client_secret
+        });
+      } catch (error) {
+        console.error('Error creating payment intent:', error);
+        res.status(500).json({ error: 'Failed to create payment intent' });
+      }
+    });
     // instructor
     app.get('/instructor', async (req, res) => {
       const result = await instructorCollection.find().toArray()
