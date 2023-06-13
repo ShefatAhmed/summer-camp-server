@@ -125,25 +125,69 @@ async function run() {
       const email = req.params.email;
 
       if (req.decoded.email !== email) {
-        res.send({ admin: false })
+        res.send({ instructor: false })
       }
 
       const query = { email: email }
       const user = await usersCollection.findOne(query);
-      const result = { admin: user?.role === 'Instructor' }
+      const result = { instructor: user?.role === 'Instructor' }
       res.send(result);
     })
-
     // classes
     app.get('/classes', async (req, res) => {
       const result = await classesCollection.find().toArray();
       res.send(result);
-    })
+    });
     app.post('/classes', async (req, res) => {
       const newclasses = req.body;
       const result = await classesCollection.insertOne(newclasses);
       res.send(result);
-    })
+    });
+    app.put('/classes/approve/:id', async (req, res) => {
+      const id = req.params.id;
+      const updateData = req.body;
+      console.log(id, updateData);
+    
+      const filter = { _id: new ObjectId(id) };
+      const updateClassData = {
+        $set: {
+          Status: 'approve'
+        }
+      };
+    
+      const result = await classesCollection.updateOne(filter, updateClassData);
+      res.send(result);
+    });
+    
+    app.put('/classes/deny/:id', async (req, res) => {
+      const id = req.params.id;
+      const updateData = req.body;
+      console.log(id, updateData);
+    
+      const filter = { _id: new ObjectId(id) };
+      const updateClassData = {
+        $set: {
+          Status: 'denied'
+        }
+      };
+    
+      const result = await classesCollection.updateOne(filter, updateClassData);
+      res.send(result);
+    });
+    app.put('/classes/feedback/:id', async (req, res) => {
+      const id = req.params.id;
+      const { feedback } = req.body;
+    
+      const filter = { _id: new ObjectId(id) };
+      const updateData = {
+        $set: {
+          feedback: feedback,
+        },
+      };
+    
+      const result = await classesCollection.updateOne(filter, updateData);
+      res.send(result);
+    });        
     app.get('/popularClasses', async (req, res) => {
       const query = {};
       const options = {
@@ -153,7 +197,12 @@ async function run() {
       const result = await cursor.toArray();
       res.send(result);
     });
-
+    app.get("/myclasses/:email", async (req, res) => {
+      const myclasses = await classesCollection.find({
+        instructor_email: req.params.email,
+      }).toArray();
+      res.send(myclasses)
+    })
     // selected class
     app.get("/selectedClass/:email", async (req, res) => {
       const result = await selectedClassCollection.find({
