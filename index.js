@@ -47,6 +47,7 @@ async function run() {
     const classesCollection = client.db("SummerSchool").collection('classes');
     const instructorCollection = client.db("SummerSchool").collection('instructor');
     const selectedClassCollection = client.db("SummerSchool").collection("selectedClass");
+    const paymentCollection = client.db("SummerSchool").collection("payments");
 
     app.post('/jwt', (req, res) => {
       const user = req.body;
@@ -223,6 +224,18 @@ async function run() {
       const result = await selectedClassCollection.insertOne(classes);
       res.send(result);
     })
+    app.put('/selectedClass/:id', async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updateSelectedData = {
+        $set: {
+          payment: 'paid'
+        }
+      };
+    
+      const result = await selectedClassCollection.updateOne(filter, updateSelectedData);
+      res.send(result);
+    });        
     // payment
     app.post('/create-payment-intent', async (req, res) => {
       try {
@@ -241,7 +254,20 @@ async function run() {
         console.error('Error creating payment intent:', error);
         res.status(500).json({ error: 'Failed to create payment intent' });
       }
+    });   
+    app.post('/payments', async (req, res) => {
+      const payment = req.body;
+      const insertResult = await paymentCollection.insertOne(payment);
+    
+      res.send(insertResult);
     });
+    app.get("/paymenthistory/:email", async (req, res) => {
+      const result = await paymentCollection
+        .find({ email: req.params.email })
+        .sort({ date: -1 })
+        .toArray();
+      res.send(result);
+    });    
     // instructor
     app.get('/instructor', async (req, res) => {
       const result = await instructorCollection.find().toArray()
@@ -257,7 +283,7 @@ async function run() {
       res.send(result);
     });
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
     // Ensures that the client will close when you finish/error
