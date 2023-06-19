@@ -145,6 +145,21 @@ async function run() {
       const result = await classesCollection.insertOne(newclasses);
       res.send(result);
     });
+    app.put('/classes/:id', async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      console.log(filter)
+      const updateData = {
+        $inc: {
+          Available_seats: -1,
+          number_of_student: 1
+        }
+      };
+    
+      const result = await classesCollection.updateOne(filter, updateData);
+      res.send(result);
+    });
+        
     app.put('/classes/approve/:id', async (req, res) => {
       const id = req.params.id;
       const updateData = req.body;
@@ -278,8 +293,12 @@ async function run() {
       const options = {
         sort: { "number_of_students": -1 }
       };
-      const cursor = instructorCollection.find(query, options);
-      const result = await cursor.toArray();
+      const result = await instructorCollection.find(query, options).limit(6).toArray();
+      res.send(result);
+    });    
+    app.post('/addinstructor', async (req, res) => {
+      const newinstructor = req.body;
+      const result = await instructorCollection.insertOne(newinstructor);
       res.send(result);
     });
     // Send a ping to confirm a successful connection
